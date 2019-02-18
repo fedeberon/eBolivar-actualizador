@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                            http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://www.springframework.org/schema/batch
+                            http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+    <import resource="applicationContext.xml"/>
+    <import resource="applicationContext-sendMails.xml"/>
+
+    <bean id="tipoRegistro" class="java.lang.Integer">
+        <constructor-arg value="0"/>
+    </bean>
+
+    <bean id="modadalidad" class="java.lang.Integer">
+        <constructor-arg value="0"/>
+    </bean>
+
+    <bean id="rotuloDocumento" class="java.lang.String">
+        <constructor-arg value=""/>
+    </bean>
+
+    <bean id="observaciones" class="java.lang.String">
+        <constructor-arg value=""/>
+    </bean>
+
+    <bean id="fechaGeneracion" class="java.util.Date">
+        <constructor-arg value="01/01/1999"/>
+    </bean>
+
+    <batch:job id="job" job-repository="jobRepository">
+        <!--<batch:step id="stepSaveFileInDB" >-->
+            <!--<batch:tasklet>-->
+                <!--<batch:chunk reader="fileItemReader"-->
+                             <!--processor="actualizadorTasasProcessor"-->
+                             <!--writer="actualizadorTasasWriter"-->
+                             <!--commit-interval="1" />-->
+            <!--</batch:tasklet>-->
+        <!--</batch:step>-->
+
+        <!--next="sendMailNotification"-->
+        <batch:step id="sendMailNotification">
+            <batch:tasklet>
+                <batch:chunk reader="sendMailReader"
+                             processor="sendMailProcessor"
+                             writer="mimeMessageItemWriter"
+                             commit-interval="1" />
+            </batch:tasklet>
+        </batch:step>
+        
+    </batch:job>
+
+	<bean id="fileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+		<property name="resource" value="${input.file}" />
+		<property name="lineMapper">
+            <bean class="org.springframework.batch.item.file.mapping.PassThroughLineMapper" />
+        </property>
+        <property name="strict" value="true" />
+	</bean>
+	
+	
+	<bean id="mimeMessageItemWriter" class="org.springframework.batch.item.mail.javamail.MimeMessageItemWriter">
+		<property name="javaMailSender" ref="mailSender"/>
+	</bean>
+	
+	
+	<bean id="simpleMailMessageItemWriter" class="org.springframework.batch.item.mail.SimpleMailMessageItemWriter">
+		<property name="mailSender" ref="mailSender"/>
+	</bean>
+
+</beans>
